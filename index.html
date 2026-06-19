@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Photography | HANJIHUN</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    :root {
+      --black:#000; --white:#fff; --gray:#aaa; --gray-light:#e8e8e8;
+      --nav-w:200px;
+      --mob-bar-h:52px;
+    }
+    html, body {
+      width:100%; height:100%; background:var(--white);
+      font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:12px; font-weight:300;
+    }
+    body { overflow:hidden; }
+
+    /* ── MOBILE TOP BAR ── */
+    #mobile-bar {
+      display:none;
+      position:fixed; top:0; left:0; right:0; height:var(--mob-bar-h);
+      z-index:200;
+      background:var(--white);
+      border-bottom:1px solid var(--gray-light);
+      align-items:center; justify-content:space-between;
+      padding:0 16px;
+    }
+    .mobile-logo {
+      font-family:'Playfair Display',Georgia,serif; font-size:16px; font-weight:700;
+      color:var(--black); text-decoration:none; letter-spacing:0.02em;
+    }
+    #hamburger {
+      background:none; border:none; cursor:pointer; padding:6px; display:flex;
+      flex-direction:column; gap:5px; align-items:flex-end;
+    }
+    #hamburger span {
+      display:block; height:1px; background:var(--black); transition:all 0.2s;
+    }
+    #hamburger span:nth-child(1) { width:22px; }
+    #hamburger span:nth-child(2) { width:16px; }
+    #hamburger span:nth-child(3) { width:22px; }
+    #hamburger.open span:nth-child(1) { transform:translateY(6px) rotate(45deg); width:22px; }
+    #hamburger.open span:nth-child(2) { opacity:0; }
+    #hamburger.open span:nth-child(3) { transform:translateY(-6px) rotate(-45deg); width:22px; }
+
+    /* backdrop for mobile nav */
+    #nav-backdrop {
+      display:none; position:fixed; inset:0; z-index:150;
+      background:rgba(0,0,0,0.3);
+    }
+    #nav-backdrop.visible { display:block; }
+
+    /* ── NAV ── */
+    #nav {
+      position:fixed; top:0; left:0; bottom:0; width:var(--nav-w); z-index:160;
+      display:flex; flex-direction:column; padding:28px 20px 24px; background:var(--white);
+      overflow-y:auto; scrollbar-width:none;
+      transition:transform 0.28s cubic-bezier(0.4,0,0.2,1);
+    }
+    #nav::-webkit-scrollbar { display:none; }
+    .nav-name {
+      font-family:'Playfair Display',Georgia,serif; font-size:18px; font-weight:700;
+      letter-spacing:0.02em; color:var(--black); text-decoration:none; margin-bottom:28px; display:block;
+    }
+    .nav-section { margin-bottom:0; }
+    .nav-section-label {
+      font-size:11px; font-weight:400; color:var(--black); letter-spacing:0.02em;
+      padding:3px 0; cursor:default; display:block; user-select:none; text-decoration:none;
+    }
+    .nav-sub { list-style:none; padding-left:14px; overflow:hidden; max-height:0; transition:max-height 0.25s ease; }
+    .nav-sub.open { max-height:600px; }
+    .nav-sub li a {
+      display:block; font-size:12px; font-weight:300; color:#555;
+      text-decoration:none; padding:3px 0; transition:color 0.15s; line-height:1.6;
+    }
+    .nav-sub li a:hover { color:var(--black); }
+    .nav-sub li a.active { color:var(--black); text-decoration:line-through; }
+    .nav-single {
+      font-size:11px; font-weight:400; color:var(--black);
+      text-decoration:none; display:block; padding:3px 0;
+    }
+    .nav-single:hover { color:var(--gray); }
+    .nav-single.bold, .nav-contact-label { font-weight:600; }
+    .nav-contact-label {
+      font-size:11px; color:var(--black); letter-spacing:0.02em;
+      padding:3px 0; cursor:default; display:block; user-select:none;
+    }
+    .nav-spacer { flex:1; }
+    .nav-copy { font-size:10px; color:var(--gray); margin-top:8px; line-height:1.5; }
+
+    /* ── HERO ── */
+    #hero {
+      position:fixed; inset:0; left:var(--nav-w); z-index:20; background:#fff;
+      overflow:hidden; cursor:default; display:block;
+    }
+    #hero-img {
+      position:absolute; inset:40px; background:#fff center/contain no-repeat;
+      opacity:1; transition:opacity 0.4s ease;
+    }
+    #hero.no-image #hero-img { display:none; }
+    .hero-arrow {
+      position:absolute; top:50%; transform:translateY(-50%); z-index:5;
+      background:none; border:none; font-size:22px; color:#000; opacity:0.25;
+      cursor:pointer; padding:8px 12px; transition:opacity 0.2s; user-select:none; display:none;
+    }
+    .hero-arrow:hover { opacity:0.8; }
+    #hero-prev { left:16px; }
+    #hero-next { right:16px; }
+
+    /* ── GRID VIEW ── */
+    #grid-view {
+      position:fixed; top:0; left:var(--nav-w); right:0; bottom:0;
+      overflow-y:auto; background:var(--white); display:none; z-index:10;
+      padding:32px 36px 60px;
+    }
+    .grid-title {
+      font-size:11px; font-weight:500; letter-spacing:0.18em; text-transform:uppercase;
+      color:var(--black); margin-bottom:28px;
+    }
+    .grid-photos { display:flex; flex-wrap:wrap; gap:4px; align-items:flex-start; }
+    .grid-item { cursor:pointer; position:relative; height:340px; flex-grow:0; overflow:hidden; }
+    .grid-item-img {
+      width:100%; height:100%; object-fit:cover; display:block;
+      background:#9c9690; transition:opacity 0.2s;
+    }
+    .grid-item:hover .grid-item-img { opacity:0.85; }
+    .grid-item-label {
+      position:absolute; left:0; right:0; bottom:0;
+      font-size:9px; font-weight:500; letter-spacing:0.15em; text-transform:uppercase;
+      color:#fff; padding:10px 10px; text-align:left;
+      background:linear-gradient(to top, rgba(0,0,0,0.55), transparent);
+      opacity:0; transition:opacity 0.2s; pointer-events:none;
+    }
+    .grid-item:hover .grid-item-label { opacity:1; }
+
+    /* ── SLIDE VIEW ── */
+    #slide-view {
+      position:fixed; top:0; left:var(--nav-w); right:0; bottom:60px;
+      background:var(--white); display:none; z-index:15; overflow:hidden;
+    }
+    .slide {
+      position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+      opacity:0; transition:opacity 0.3s ease; pointer-events:none;
+    }
+    .slide.active { opacity:1; pointer-events:auto; }
+    .slide-inner { width:100%; height:100%; display:flex; align-items:center; justify-content:center; }
+    .slide-photo { max-width:100%; max-height:100%; display:block; }
+    .slide-ph { display:block; }
+
+    /* counter */
+    #counter {
+      position:fixed; top:28px; right:60px; font-size:10px; color:var(--gray);
+      letter-spacing:0.08em; z-index:60; display:none;
+    }
+
+    /* slide arrows */
+    .s-arrow {
+      position:fixed; top:50%; transform:translateY(-50%); width:48px; height:48px;
+      display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:60;
+      color:var(--black); font-size:18px; user-select:none; opacity:0.25; transition:opacity 0.2s;
+      background:none; border:none;
+    }
+    .s-arrow { display:none; } /* overridden by JS show */
+    .s-arrow:hover { opacity:1; }
+    #s-prev { left:calc(var(--nav-w) + 8px); }
+    #s-next { right:8px; }
+
+    /* back button */
+    #back-btn {
+      position:fixed; top:24px; left:calc(var(--nav-w) + 20px); z-index:60;
+      font-size:10px; letter-spacing:0.15em; text-transform:uppercase; color:var(--gray);
+      background:none; border:none; cursor:pointer; display:none; transition:color 0.2s; padding:4px 0;
+    }
+    #back-btn:hover { color:var(--black); }
+
+    /* ── THUMB STRIP ── */
+    #thumbs {
+      position:fixed; left:var(--nav-w); right:0; bottom:0; height:60px;
+      display:none; align-items:center; overflow-x:auto; overflow-y:hidden;
+      gap:3px; padding:3px 8px; border-top:1px solid var(--gray-light);
+      background:var(--white); scrollbar-width:none;
+    }
+    #thumbs::-webkit-scrollbar { display:none; }
+    .thumb { flex:0 0 auto; width:80px; height:54px; cursor:pointer; overflow:hidden; opacity:0.35; transition:opacity 0.2s; }
+    .thumb:hover { opacity:0.65; }
+    .thumb.active { opacity:1; }
+    .thumb-photo { width:100%; height:100%; object-fit:cover; display:block; background:#e8e8e8; }
+
+    /* admin trigger — subtle dot bottom-right */
+    #admin-btn {
+      position:fixed; bottom:16px; right:16px; z-index:200;
+      width:18px; height:18px; border-radius:50%;
+      background:var(--white); border:1px solid #d8d8d8;
+      cursor:pointer; opacity:0.3; transition:opacity 0.2s;
+      display:block;
+    }
+    #admin-btn:hover { opacity:1; }
+
+    /* ── ADMIN OVERLAY ── */
+    #admin-overlay { display:none; position:fixed; inset:0; z-index:300; background:rgba(0,0,0,0.4); }
+    #admin-overlay.visible { display:flex; align-items:center; justify-content:center; }
+    #admin-panel {
+      background:var(--white); width:600px; max-width:calc(100vw - 32px); max-height:85vh;
+      overflow-y:auto; padding:36px 40px; position:relative;
+    }
+    #admin-panel h2 { font-family:'Playfair Display',serif; font-size:18px; font-weight:700; margin-bottom:20px; }
+    .admin-close {
+      position:absolute; top:16px; right:20px; font-size:18px; cursor:pointer;
+      background:none; border:none; color:var(--black); opacity:0.4;
+    }
+    .admin-close:hover { opacity:1; }
+    .admin-tabs { display:flex; border-bottom:1px solid #eee; margin-bottom:24px; }
+    .admin-tab {
+      font-size:10px; letter-spacing:0.18em; text-transform:uppercase; padding:8px 12px;
+      cursor:pointer; border-bottom:2px solid transparent; color:var(--gray); transition:color 0.15s;
+      background:none; border-top:none; border-left:none; border-right:none; font-family:inherit;
+    }
+    .admin-tab.active { color:var(--black); border-bottom-color:var(--black); }
+    .admin-tab-panel { display:none; }
+    .admin-tab-panel.active { display:block; }
+    #login-box { display:flex; flex-direction:column; gap:12px; }
+    #login-error { font-size:10px; color:#c00; display:none; }
+    .admin-section-title {
+      font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:var(--gray);
+      margin:20px 0 10px; padding-bottom:6px; border-bottom:1px solid #eee;
+    }
+    .admin-section-title:first-child { margin-top:0; }
+    .admin-field { margin-bottom:12px; }
+    .admin-field label { display:block; font-size:10px; letter-spacing:0.15em; text-transform:uppercase; color:var(--gray); margin-bottom:4px; }
+    .admin-field input, .admin-field textarea {
+      width:100%; border:none; border-bottom:1px solid #ddd; padding:6px 0;
+      font-size:12px; outline:none; font-family:inherit; background:transparent; resize:none;
+    }
+    .admin-field input:focus, .admin-field textarea:focus { border-color:var(--black); }
+    .cat-group { margin-bottom:20px; }
+    .cat-group-header { font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:var(--black); margin-bottom:8px; padding-bottom:6px; border-bottom:1px solid #eee; }
+    .cat-item { display:flex; align-items:center; gap:6px; margin-bottom:4px; }
+    .cat-item input { flex:1; border:none; border-bottom:1px solid #e8e8e8; padding:4px 0; font-size:11px; outline:none; font-family:inherit; background:transparent; }
+    .cat-item input:focus { border-color:var(--black); }
+    .cat-item-actions { display:flex; gap:2px; }
+    .cat-btn { background:none; border:none; cursor:pointer; font-size:13px; color:var(--gray); padding:2px 4px; line-height:1; }
+    .cat-btn:hover { color:var(--black); }
+    .cat-btn.del:hover { color:#c00; }
+    .cat-add-row { display:flex; gap:6px; margin-top:6px; }
+    .cat-add-row input { flex:1; border:none; border-bottom:1px solid #ddd; padding:5px 0; font-size:11px; outline:none; font-family:inherit; background:transparent; }
+    .cat-add-btn { background:none; border:1px solid #ddd; color:var(--gray); font-size:10px; letter-spacing:0.1em; padding:4px 10px; cursor:pointer; font-family:inherit; white-space:nowrap; }
+    .cat-add-btn:hover { border-color:var(--black); color:var(--black); }
+    .upload-area { border:1px dashed #ccc; padding:16px; text-align:center; font-size:11px; color:var(--gray); cursor:pointer; transition:border-color 0.2s; margin-bottom:8px; }
+    .upload-area:hover { border-color:var(--black); color:var(--black); }
+    .upload-area input { display:none; }
+    .img-preview-row { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
+    .img-preview-item { position:relative; width:72px; height:72px; }
+    .img-preview-item img { width:100%; height:100%; object-fit:cover; display:block; }
+    .del-img { position:absolute; top:2px; right:2px; background:rgba(0,0,0,0.6); color:#fff; border:none; font-size:10px; line-height:1; padding:2px 4px; cursor:pointer; }
+    .admin-save {
+      display:block; width:100%; background:var(--black); color:var(--white); border:none;
+      padding:12px; font-size:10px; letter-spacing:0.25em; text-transform:uppercase;
+      cursor:pointer; margin-top:24px; font-family:inherit; transition:opacity 0.2s;
+    }
+    .admin-save:hover { opacity:0.6; }
+    .admin-logout {
+      display:block; width:100%; background:none; color:var(--gray); border:none;
+      padding:8px; font-size:10px; letter-spacing:0.15em; text-transform:uppercase;
+      cursor:pointer; margin-top:8px; font-family:inherit;
+    }
+    .admin-logout:hover { color:var(--black); }
+    .save-msg { font-size:10px; color:#080; text-align:center; margin-top:8px; display:none; }
+
+    /* ══════════════════════════════════════
+       MOBILE  (≤ 680px)
+    ══════════════════════════════════════ */
+    @media (max-width:680px) {
+      :root { --nav-w:0px; }
+
+      body { overflow:auto; }
+
+      /* show mobile bar */
+      #mobile-bar { display:flex; }
+
+      /* nav becomes a drawer */
+      #nav {
+        top:var(--mob-bar-h); bottom:0; width:260px;
+        padding:24px 20px 32px;
+        transform:translateX(-100%);
+        box-shadow:4px 0 20px rgba(0,0,0,0.08);
+        z-index:160;
+      }
+      #nav.mobile-open { transform:translateX(0); }
+      .nav-name { display:none; } /* hidden in drawer — logo is in mobile-bar */
+
+      /* bump nav link tap targets */
+      .nav-sub li a { padding:5px 0; font-size:13px; }
+      .nav-section-label { font-size:12px; padding:5px 0; }
+      .nav-contact-label { font-size:12px; margin-top:8px; }
+
+      /* HERO — full screen below bar */
+      #hero {
+        left:0; top:var(--mob-bar-h);
+        position:fixed;
+      }
+      #hero-img { inset:20px; }
+
+      /* GRID */
+      #grid-view {
+        left:0; top:var(--mob-bar-h);
+        padding:20px 12px 80px;
+        position:fixed;
+      }
+      .grid-title { font-size:10px; margin-bottom:16px; }
+
+      /* mobile grid: 2-column fixed layout, no justified gymnastics */
+      .grid-photos { display:grid !important; grid-template-columns:1fr 1fr; gap:3px; }
+      .grid-photos > div { display:contents; } /* flatten row wrappers */
+      .grid-item {
+        width:100% !important; height:0 !important; padding-bottom:100%; /* 1:1 */
+        flex:none !important; flex-shrink:unset !important;
+        position:relative;
+      }
+      .grid-item-img { position:absolute; inset:0; width:100%; height:100%; }
+      .grid-item-label { opacity:1; font-size:8px; } /* always visible on mobile */
+
+      /* SLIDE */
+      #slide-view {
+        left:0; top:var(--mob-bar-h); bottom:52px; /* above thumb strip */
+        position:fixed;
+      }
+      /* hide desktop slide arrows on mobile — swipe is enough */
+      #s-prev, #s-next { display:none !important; }
+
+      /* back button repositioned */
+      #back-btn {
+        left:12px; top:calc(var(--mob-bar-h) + 10px);
+        font-size:11px;
+      }
+
+      /* counter */
+      #counter {
+        right:12px; top:calc(var(--mob-bar-h) + 14px);
+        font-size:11px;
+      }
+
+      /* thumbnail strip */
+      #thumbs {
+        left:0; height:52px;
+        padding:3px 6px;
+      }
+      .thumb { width:68px; height:46px; }
+
+      /* admin panel */
+      #admin-panel {
+        width:100%; max-width:100%; max-height:92vh;
+        padding:28px 20px;
+        border-radius:12px 12px 0 0;
+        align-self:flex-end;
+        margin-top:auto;
+      }
+      #admin-overlay.visible { align-items:flex-end; }
+      .admin-tab { padding:8px 10px; font-size:9px; }
+
+      /* admin — hidden on mobile */
+      #admin-btn { display:none !important; }
+      #admin-overlay { display:none !important; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- 모바일 상단바 (모바일에서만 표시) -->
+<div id="mobile-bar">
+  <a href="#" class="mobile-logo" onclick="showHero(event);closeMobileNav();">HANJIHUN</a>
+  <button id="hamburger" onclick="toggleMobileNav()" aria-label="메뉴">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<nav id="nav">
+  <a href="#" class="nav-name" id="site-name" onclick="showHero(event);closeMobileNav();">HANJIHUN</a>
+  <div id="nav-dynamic"></div>
+  <div class="nav-spacer"></div>
+  <div class="nav-copy">© 2019 Hanjihun.<br>All rights reserved.</div>
+</nav>
+<div id="nav-backdrop" onclick="closeMobileNav()"></div>
+
+<!-- HERO -->
+<div id="hero" class="no-image">
+  <div id="hero-img"></div>
+  <button class="hero-arrow" id="hero-prev" onclick="heroChangeSlide(-1)">&#8249;</button>
+  <button class="hero-arrow" id="hero-next" onclick="heroChangeSlide(1)">&#8250;</button>
+</div>
+
+<!-- GRID VIEW -->
+<div id="grid-view">
+  <div class="grid-title" id="grid-title">ADVERTISING</div>
+  <div class="grid-photos" id="grid-photos"></div>
+</div>
+
+<!-- SLIDE VIEW -->
+<div id="slide-view"></div>
+<div id="thumbs"></div>
+<div id="counter"></div>
+<button class="s-arrow" id="s-prev" onclick="changeSlide(-1)">&#8249;</button>
+<button class="s-arrow" id="s-next" onclick="changeSlide(1)">&#8250;</button>
+<button id="back-btn" onclick="backToGrid()">← Back</button>
+
+<div id="admin-btn" onclick="openAdmin()" title="Admin"></div>
+
+<!-- ADMIN -->
+<div id="admin-overlay">
+  <div id="admin-panel">
+    <button class="admin-close" onclick="closeAdmin()">✕</button>
+    <div id="login-box">
+      <h2>Admin</h2>
+      <div class="admin-field">
+        <label>Password</label>
+        <input type="password" id="pw-input" placeholder="••••" onkeydown="if(event.key==='Enter')checkPw()">
+      </div>
+      <div id="login-error">Wrong password</div>
+      <button class="admin-save" onclick="checkPw()">Enter</button>
+    </div>
+    <div id="admin-content" style="display:none;">
+      <h2>Admin</h2>
+      <div class="admin-tabs">
+        <button class="admin-tab active" onclick="switchTab('tab-site',this)">Site</button>
+        <button class="admin-tab" onclick="switchTab('tab-categories',this)">Categories</button>
+        <button class="admin-tab" onclick="switchTab('tab-images',this)">Images</button>
+        <button class="admin-tab" onclick="switchTab('tab-contact',this)">Contact</button>
+      </div>
+      <!-- SITE -->
+      <div class="admin-tab-panel active" id="tab-site">
+        <div class="admin-field"><label>Name shown top left</label><input type="text" id="edit-name"></div>
+        <p class="admin-section-title" style="margin-top:16px;">Hero Images</p>
+        <div class="upload-area" onclick="document.getElementById('hero-upload').click()">
+          Click to upload hero images (multiple supported)<br>
+          <small style="color:#bbb;font-size:10px;">Slides automatically every 7 seconds</small>
+          <input type="file" id="hero-upload" accept="image/*" multiple onchange="handleHeroUpload(this)">
+        </div>
+        <div class="img-preview-row" id="hero-preview-row"></div>
+      </div>
+      <!-- CATEGORIES -->
+      <div class="admin-tab-panel" id="tab-categories">
+        <p style="font-size:10px;color:var(--gray);margin-bottom:16px;line-height:1.6;">Edit, add, or delete sub-categories under each group.</p>
+        <div id="cat-editor"></div>
+      </div>
+      <!-- IMAGES -->
+      <div class="admin-tab-panel" id="tab-images">
+        <div class="admin-field"><label>Select Category</label><select id="upload-set-select" onchange="refreshPreview()"></select></div>
+        <div class="upload-area" id="upload-area-btn" onclick="document.getElementById('img-upload').click()">
+          Click to upload images (JPG, PNG, WEBP)<br>
+          <small style="color:#bbb;font-size:10px;">Multiple files supported</small>
+          <input type="file" id="img-upload" multiple accept="image/*" onchange="handleUpload(this)">
+        </div>
+        <div class="img-preview-row" id="preview-row"></div>
+      </div>
+      <!-- CONTACT -->
+      <div class="admin-tab-panel" id="tab-contact">
+        <div class="admin-field"><label>Phone</label><input type="text" id="edit-phone"></div>
+        <div class="admin-field"><label>Email</label><input type="text" id="edit-email"></div>
+        <div class="admin-field"><label>Instagram handle</label><input type="text" id="edit-insta"></div>
+      </div>
+      <button class="admin-save" onclick="saveAdmin()">Save &amp; Apply</button>
+      <div class="save-msg" id="save-msg">✓ Saved</div>
+      <button class="admin-logout" onclick="logout()">Log out</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DEFAULT DATA ──────────────────────────────────────
+const DEFAULT_NAV = {
+  advertising: { label:'Advertising', items:[
+    {key:'chanel',      label:'Chanel'},
+    {key:'dior',        label:'Dior'},
+    {key:'prada',       label:'Prada'},
+    {key:'saintlaurent',label:'Saint Laurent'},
+    {key:'gucci',       label:'Gucci'},
+    {key:'celine',      label:'Celine'},
+    {key:'loewe',       label:'Loewe'},
+    {key:'miumiu',      label:'Miu Miu'},
+  ]},
+  editorial: { label:'Editorial', items:[
+    {key:'vogue',      label:'Vogue Korea'},
+    {key:'wmagazine',  label:'W Magazine'},
+    {key:'another',    label:'Another Magazine'},
+    {key:'selfservice',label:'Self Service'},
+    {key:'dazed',      label:'Dazed'},
+    {key:'dust',       label:'Dust'},
+    {key:'document',   label:'Document Journal'},
+  ]},
+  celebrity: { label:'Celebrity', items:[
+    {key:'celebrity', label:'Celebrity'},
+  ]},
+  personal: { label:'Personal', items:[
+    {key:'personal', label:'Personal'},
+  ]},
+};
+
+const DEFAULT_COLORS = {
+  chanel:'#9c9690', dior:'#8c8580', prada:'#7c8084', saintlaurent:'#1a1a1a',
+  gucci:'#9c9080', celine:'#a8a4a0', loewe:'#849080', miumiu:'#a89094',
+  vogue:'#a0a0a0', wmagazine:'#888888', another:'#a09084', selfservice:'#909c90',
+  dazed:'#202020', dust:'#b8b4ac', document:'#888888',
+  celebrity:'#9c9490', personal:'#c0bcb4',
+};
+
+// ── STATE ─────────────────────────────────────────────
+let navData    = JSON.parse(JSON.stringify(DEFAULT_NAV));
+let siteData   = { name:'HANJIHUN', phone:'+82.10.8301.0157', email:'the.hanji.hun@gmail.com', insta:'@hanjlhun' };
+let imageStore = {};
+let heroImages = [];
+let heroIdx = 0, heroTimer = null;
+let currentGroupKey = null; // grid mode
+let slideImages = [], slideIdx = 0; // slide mode
+
+// ── 안전한 history 래퍼 ────────────────────────────────
+// about:srcdoc 같은 샌드박스 미리보기 환경에서는 history API가 보안상 차단되어
+// SecurityError를 던진다. 실제 배포 환경에서는 정상 동작하므로 에러만 무시한다.
+function safePushState(state){ try{ history.pushState(state, '', '#'); }catch(e){} }
+function safeReplaceState(state){ try{ history.replaceState(state, '', '#'); }catch(e){} }
+
+// ── STORAGE (Cloudflare R2 연동) ───────────────────────
+// 데이터를 서버(R2)에서 불러오고 저장한다. 어디서 접속해도 동일하게 보인다.
+let ADMIN_PASSWORD_CACHE = null; // 로그인 성공 시 저장에 재사용
+
+async function loadFromStorage() {
+  try {
+    const res = await fetch('/api/data', { cache: 'no-store' });
+    if (!res.ok) throw new Error('not ok');
+    const text = await res.text();
+    if (!text || text.trimStart().startsWith('<')) throw new Error('not json');
+    const data = JSON.parse(text);
+    if (data.siteData)   siteData   = data.siteData;
+    if (data.navData)    navData    = data.navData;
+    if (data.imageStore) imageStore = data.imageStore;
+    if (data.heroImages) heroImages = data.heroImages;
+  } catch (e) {
+    // 서버 미연결 상태 — 기본값으로 동작
+  }
+  // 마이그레이션: 기본 그룹 보충 / 삭제된 그룹 제거
+  Object.keys(DEFAULT_NAV).forEach(gk=>{
+    if(!navData[gk]) navData[gk] = JSON.parse(JSON.stringify(DEFAULT_NAV[gk]));
+  });
+  if(navData.movingimage) delete navData.movingimage;
+}
+
+// 서버에 저장 (비밀번호 필요). 성공 시 true 반환.
+async function saveToStorage() {
+  if (!ADMIN_PASSWORD_CACHE) {
+    alert('저장하려면 어드민 로그인이 필요합니다.');
+    return false;
+  }
+  try {
+    const res = await fetch('/api/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        password: ADMIN_PASSWORD_CACHE,
+        siteData, navData, imageStore, heroImages,
+      }),
+    });
+    if (res.status === 401) { alert('비밀번호가 올바르지 않습니다.'); return false; }
+    if (!res.ok) {
+      const err = await res.json().catch(()=>({}));
+      alert('저장에 실패했습니다: ' + (err.message || res.status));
+      return false;
+    }
+    return true;
+  } catch (e) {
+    alert('저장 중 네트워크 오류가 발생했습니다.');
+    console.error(e);
+    return false;
+  }
+}
+
+// ── NAVER MAP ─────────────────────────────────────────
+// 도착지: 서울 강남구 논현동 272-26 (사용자 확인 좌표)
+const DEST_LAT  = 37.5104597009294;
+const DEST_LNG  = 127.039802355022;
+const DEST_NAME = encodeURIComponent('서울 강남구 논현동 272-26');
+const APP_NAME  = 'hanjihun.portfolio';
+
+function openDirections(e) {
+  e.preventDefault();
+  const isAndroid = /Android/i.test(navigator.userAgent);
+  const isIOS     = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const isMobile  = isAndroid || isIOS;
+
+  if (!navigator.geolocation) {
+    openDirFallback(isMobile);
+    return;
+  }
+
+  // 사용자 현위치를 출발지로 가져온다
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      const sLat  = pos.coords.latitude;
+      const sLng  = pos.coords.longitude;
+      const sName = encodeURIComponent('현재위치');
+
+      if (isMobile) {
+        // 네이버 지도 앱 길찾기 (공식 URL Scheme: nmap://route/car)
+        const appUrl = `nmap://route/car?slat=${sLat}&slng=${sLng}&sname=${sName}&dlat=${DEST_LAT}&dlng=${DEST_LNG}&dname=${DEST_NAME}&appname=${APP_NAME}`;
+        const webFallback = `https://m.map.naver.com/route.nhn?menu=route&sname=${sName}&sx=${sLng}&sy=${sLat}&ename=${DEST_NAME}&ex=${DEST_LNG}&ey=${DEST_LAT}&pathType=0&showMap=true`;
+
+        window.location.href = appUrl;
+        // 앱이 없으면 1.2초 뒤 웹 길찾기로 폴백
+        setTimeout(() => { window.open(webFallback, '_blank'); }, 1200);
+      } else {
+        // PC 웹: 출발지(현위치) → 도착지 좌표로 바로 경로 표시
+        const webUrl = `https://map.naver.com/v5/directions/${sLng},${sLat},${sName}/${DEST_LNG},${DEST_LAT},${DEST_NAME}/-/car`;
+        window.open(webUrl, '_blank');
+      }
+    },
+    () => openDirFallback(isMobile),
+    { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+  );
+}
+
+function openDirFallback(isMobile) {
+  // 위치 권한이 거부되었거나 위치를 가져올 수 없을 때 — 도착지만 고정해서 표시
+  if (isMobile) {
+    const appUrl = `nmap://place?lat=${DEST_LAT}&lng=${DEST_LNG}&name=${DEST_NAME}&appname=${APP_NAME}`;
+    window.location.href = appUrl;
+    setTimeout(() => {
+      window.open(`https://m.map.naver.com/route.nhn?menu=route&ename=${DEST_NAME}&ex=${DEST_LNG}&ey=${DEST_LAT}&pathType=0&showMap=true`, '_blank');
+    }, 1200);
+  } else {
+    window.open(`https://map.naver.com/v5/directions/-/-/-/${DEST_LNG},${DEST_LAT},${DEST_NAME}/car`, '_blank');
+  }
+}
+
+// ── NAV RENDER ────────────────────────────────────────
+function renderNav() {
+  document.getElementById('site-name').textContent = siteData.name;
+  document.title = 'Photography | ' + siteData.name;
+  renderHero();
+  const container = document.getElementById('nav-dynamic');
+  container.innerHTML = '';
+
+  // Photography — bold label (not clickable), sub-items always visible
+  const phSec = document.createElement('div'); phSec.className='nav-section';
+  const phLbl = document.createElement('div'); phLbl.className='nav-section-label';
+  phLbl.style.cssText='font-weight:600;cursor:default;';
+  phLbl.textContent='Photography';
+  const phUl = document.createElement('ul'); phUl.className='nav-sub open'; phUl.id='sub-photography';
+  Object.entries(navData).forEach(([groupKey, group]) => {
+    const li=document.createElement('li'), a=document.createElement('a');
+    a.href='#'; a.textContent=group.label; a.dataset.key=groupKey;
+    a.onclick = e => { e.preventDefault(); showGrid(groupKey); };
+    li.appendChild(a); phUl.appendChild(li);
+  });
+  phSec.appendChild(phLbl); phSec.appendChild(phUl);
+  container.appendChild(phSec);
+
+  // Contact — bold label (not clickable), items always visible
+  const cSec=document.createElement('div'); cSec.className='nav-section';
+  const cLbl=document.createElement('div'); cLbl.className='nav-contact-label';
+  cLbl.style.cssText='cursor:default;margin-top:4px;';
+  cLbl.textContent='Contact';
+  const cUl=document.createElement('ul'); cUl.className='nav-sub open'; cUl.id='sub-contact';
+  [
+    {text:siteData.phone,   href:'tel:'+siteData.phone.replace(/[^+\d]/g,'')},
+    {text:siteData.email,   href:'mailto:'+siteData.email},
+    {text:siteData.insta,   href:'https://www.instagram.com/'+siteData.insta.replace('@',''), target:'_blank'},
+    {text:'18, Bongeunsa-ro 43-gil, Gangnam-gu', onclick:openDirections},
+  ].forEach(ci=>{
+    const li=document.createElement('li'), a=document.createElement('a');
+    a.href=ci.href||'#'; a.textContent=ci.text;
+    if(ci.target) a.target=ci.target;
+    if(ci.onclick) a.onclick=ci.onclick;
+    li.appendChild(a); cUl.appendChild(li);
+  });
+  cSec.appendChild(cLbl); cSec.appendChild(cUl); container.appendChild(cSec);
+}
+
+function toggleSub(id){
+  const sub=document.getElementById(id); if(!sub) return;
+  sub.classList.toggle('open');
+  const lbl=sub.previousElementSibling;
+  if(lbl) lbl.classList.toggle('open', sub.classList.contains('open'));
+}
+
+// ── HERO ──────────────────────────────────────────────
+function renderHero(){
+  const hero=document.getElementById('hero'), img=document.getElementById('hero-img');
+  const pBtn=document.getElementById('hero-prev'), nBtn=document.getElementById('hero-next');
+  clearInterval(heroTimer);
+  if(heroImages.length){
+    heroIdx=0; img.style.backgroundImage=`url(${heroImages[0]})`;
+    hero.classList.remove('no-image');
+    const show=heroImages.length>1;
+    pBtn.style.display=show?'block':'none'; nBtn.style.display=show?'block':'none';
+    if(show) heroTimer=setInterval(()=>heroChangeSlide(1,true),7000);
+  } else {
+    img.style.backgroundImage=''; hero.classList.add('no-image');
+    pBtn.style.display='none'; nBtn.style.display='none';
+  }
+}
+function heroChangeSlide(dir,fromTimer=false){
+  if(!heroImages.length) return;
+  if(!fromTimer){ clearInterval(heroTimer); heroTimer=setInterval(()=>heroChangeSlide(1,true),7000); }
+  const img=document.getElementById('hero-img');
+  heroIdx=(heroIdx+dir+heroImages.length)%heroImages.length;
+  img.style.opacity='0';
+  setTimeout(()=>{ img.style.backgroundImage=`url(${heroImages[heroIdx]})`; img.style.opacity='1'; },400);
+}
+function showHero(e, fromHistory){
+  e&&e.preventDefault();
+  hideGrid(); hideSlide();
+  if(isMobileLayout()) closeMobileNav();
+  document.querySelectorAll('.nav-sub a').forEach(a=>a.classList.remove('active'));
+  currentGroupKey=null;
+  const hero=document.getElementById('hero');
+  hero.style.display='block'; hero.style.opacity='0'; hero.style.transition='opacity 0.4s ease';
+  requestAnimationFrame(()=>hero.style.opacity='1');
+  renderHero();
+  if(!fromHistory) safePushState({view:'hero'});
+}
+
+// ── GRID VIEW ─────────────────────────────────────────
+// getGroupImages: returns [{src, label, key, idx}] for a group or single key
+function getGroupImages(groupKey, filterKey){
+  const results=[];
+  const group=navData[groupKey]; if(!group) return results;
+  group.items.forEach(item=>{
+    if(filterKey && item.key!==filterKey) return;
+    const srcs=imageStore[item.key]&&imageStore[item.key].length?imageStore[item.key]:genColors(item.key,6);
+    // personal 그룹은 모든 사진을 개별로 표시
+    if(groupKey==='personal'){
+      srcs.forEach((src,i)=>results.push({src,label:item.label,key:item.key,idx:i,allSrcs:srcs}));
+    } else {
+      // 나머지는 대표 이미지 1컷만
+      results.push({src:srcs[0],label:item.label,key:item.key,idx:0,allSrcs:srcs});
+    }
+  });
+  return results;
+}
+function genColors(key,n){
+  const c=DEFAULT_COLORS[key]||'#cccccc'; const arr=[];
+  for(let i=0;i<n;i++) arr.push(c); return arr;
+}
+function isUrl(s){ return s&&(s.startsWith('data:')||s.startsWith('http')||s.startsWith('/')); }
+
+function showGrid(groupKey, filterKey, fromHistory){
+  hideHero(); hideSlide();
+  if(isMobileLayout()) closeMobileNav();
+  currentGroupKey=groupKey;
+  // active nav link
+  document.querySelectorAll('.nav-sub a').forEach(a=>a.classList.remove('active'));
+  const targetKey = filterKey || groupKey;
+  document.querySelectorAll('.nav-sub a').forEach(a=>{
+    if(a.dataset.key === targetKey) a.classList.add('active');
+  });
+  if(!fromHistory) safePushState({view:'grid', groupKey, filterKey});
+  const gv=document.getElementById('grid-view');
+  const titleEl=document.getElementById('grid-title');
+  const photosEl=document.getElementById('grid-photos');
+  // title
+  if(filterKey){
+    const group=navData[groupKey];
+    const item=group&&group.items.find(i=>i.key===filterKey);
+    titleEl.textContent=(item?item.label:filterKey).toUpperCase();
+  } else {
+    const group=navData[groupKey];
+    titleEl.textContent=(group?group.label:groupKey).toUpperCase();
+  }
+  // photos
+  const imgs=getGroupImages(groupKey,filterKey);
+  photosEl.innerHTML='';
+  gv.style.display='block';
+  document.getElementById('back-btn').style.display='none';
+
+  // 1) 모든 항목의 실제 비율(가로/세로)을 먼저 구한다
+  const ratioPromises = imgs.map(item=>{
+    if(!isUrl(item.src)) return Promise.resolve(0.75); // placeholder 기본 3:4
+    return new Promise(resolve=>{
+      const probe=new Image();
+      probe.onload=()=>resolve(probe.naturalWidth/probe.naturalHeight || 0.75);
+      probe.onerror=()=>resolve(0.75);
+      probe.src=item.src;
+    });
+  });
+
+  Promise.all(ratioPromises).then(ratios=>{
+    if(isMobileLayout()){
+      renderMobileGrid(imgs, photosEl);
+    } else {
+      renderJustifiedGrid(imgs, ratios, photosEl);
+    }
+  });
+}
+
+// 줄(row) 단위로 묶어 꽉 채운 줄만 늘리고, 못 채운 마지막 줄은
+// 원본 비율 그대로 좌측 정렬해서 비율이 깨지지 않게 한다.
+function renderJustifiedGrid(imgs, ratios, photosEl){
+  const ROW_H = 340;          // 기준 줄 높이
+  const GAP   = 4;
+  const containerW = photosEl.clientWidth || (window.innerWidth - 200 - 72);
+
+  let row = [];      // {item, ratio}
+  let rowWidth = 0;
+
+  const flushRow = (isLastRow) => {
+    if(!row.length) return;
+    const totalGap = GAP * (row.length - 1);
+    const naturalRowWidth = row.reduce((s,r)=>s+ROW_H*r.ratio, 0) + totalGap;
+
+    // 꽉 찬 줄(또는 컨테이너보다 넓게 채워지는 줄)만 컨테이너 폭에 맞춰 비율 유지하며 스케일.
+    // 마지막 줄이 컨테이너보다 좁게 끝나면(=한 줄을 못 채움) 늘리지 않고 원본 비율 그대로 좌측 정렬.
+    const shouldStretch = !isLastRow || naturalRowWidth >= containerW;
+    const scale = shouldStretch ? (containerW - totalGap) / (naturalRowWidth - totalGap) : 1;
+    const rowH = ROW_H * scale;
+
+    const rowDiv = document.createElement('div');
+    const justify = shouldStretch ? 'flex-start' : 'center';
+    rowDiv.style.cssText = `display:flex; gap:${GAP}px; margin-bottom:${GAP}px; justify-content:${justify};`;
+    row.forEach(r=>{
+      const w = ROW_H * r.ratio * scale;
+      rowDiv.appendChild(buildGridItem(r.item, w, rowH));
+    });
+    photosEl.appendChild(rowDiv);
+    row = []; rowWidth = 0;
+  };
+
+  imgs.forEach((item,i)=>{
+    const ratio = ratios[i];
+    const w = ROW_H * ratio;
+    if(rowWidth + w + (row.length?GAP:0) > containerW && row.length){
+      flushRow(false);
+    }
+    row.push({item, ratio});
+    rowWidth += w + (row.length>1?GAP:0);
+  });
+  flushRow(true); // 마지막 남은 줄 — 못 채웠으면 원본 비율 유지
+
+  document.getElementById('back-btn').style.display='none';
+}
+
+function buildGridItem(item, w, h){
+  const div=document.createElement('div'); div.className='grid-item';
+  div.style.width=Math.round(w)+'px';
+  div.style.height=Math.round(h)+'px';
+  div.style.flexShrink='0';
+  div.onclick=()=>{
+    if(currentGroupKey==='personal'){
+      const allImgs=(item.allSrcs||[item.src]).map((src,i)=>({src,label:item.label,key:item.key,idx:i,allSrcs:item.allSrcs}));
+      enterSlide(allImgs, item.idx);
+    } else {
+      const allImgs=(item.allSrcs||[item.src]).map((src,i)=>({src,label:item.label,key:item.key,idx:i}));
+      enterSlide(allImgs, 0);
+    }
+  };
+  let gridThumb;
+  if(isUrl(item.src)){
+    gridThumb=document.createElement('img'); gridThumb.className='grid-item-img'; gridThumb.src=item.src;
+  } else {
+    gridThumb=document.createElement('div'); gridThumb.className='grid-item-img'; gridThumb.style.background=item.src;
+  }
+  const lbl=document.createElement('div'); lbl.className='grid-item-label';
+  lbl.textContent=item.label;
+  if(currentGroupKey==='personal') lbl.style.display='none';
+  div.appendChild(gridThumb); div.appendChild(lbl);
+  return div;
+}
+function hideGrid(){ document.getElementById('grid-view').style.display='none'; }
+
+// ── SLIDE VIEW ────────────────────────────────────────
+function enterSlide(imgs, startIdx, fromHistory){
+  hideGrid();
+  slideImages=imgs; slideIdx=startIdx;
+  buildSlides();
+  const sv=document.getElementById('slide-view');
+  sv.style.display='block';
+  document.getElementById('thumbs').style.display='flex';
+  document.getElementById('counter').style.display='block';
+  document.getElementById('s-prev').style.display='flex';
+  document.getElementById('s-next').style.display='flex';
+  document.getElementById('back-btn').style.display='block';
+  if(!fromHistory) safePushState({view:'slide', groupKey:currentGroupKey, startIdx});
+}
+function hideSlide(){
+  document.getElementById('slide-view').style.display='none';
+  document.getElementById('thumbs').style.display='none';
+  document.getElementById('counter').style.display='none';
+  document.getElementById('s-prev').style.display='none';
+  document.getElementById('s-next').style.display='none';
+  document.getElementById('back-btn').style.display='none';
+}
+function backToGrid(){
+  hideSlide();
+  if(currentGroupKey) showGrid(currentGroupKey);
+  else showHero(null);
+}
+
+function buildSlides(){
+  const sv=document.getElementById('slide-view');
+  const tb=document.getElementById('thumbs');
+  sv.innerHTML=''; tb.innerHTML='';
+  slideImages.forEach((item,i)=>{
+    // slide
+    const slide=document.createElement('div'); slide.className='slide'+(i===slideIdx?' active':'');
+    const inner=document.createElement('div'); inner.className='slide-inner';
+    const ph=document.createElement('div'); ph.className='slide-photo';
+    ph.style.cssText='width:100%;height:100%;display:flex;align-items:center;justify-content:center;';
+    if(isUrl(item.src)){
+      // 실제 이미지의 자연 비율 그대로, 화면(여백 포함)에 맞게 최대한 크게 표시
+      const img=document.createElement('img'); img.src=item.src;
+      img.style.cssText='max-width:90%;max-height:90%;width:auto;height:auto;object-fit:contain;display:block;';
+      ph.appendChild(img);
+    } else {
+      // placeholder 색상 박스만 기본 비율 유지
+      ph.style.cssText+='width:680px;height:900px;max-width:90%;max-height:90%;';
+      ph.style.background=item.src;
+    }
+    inner.appendChild(ph); slide.appendChild(inner); sv.appendChild(slide);
+    // thumb
+    const th=document.createElement('div'); th.className='thumb'+(i===slideIdx?' active':'');
+    th.onclick=()=>goTo(i);
+    if(isUrl(item.src)){
+      const img=document.createElement('img'); img.src=item.src; img.className='thumb-photo'; th.appendChild(img);
+    } else {
+      const tp=document.createElement('div'); tp.className='thumb-photo'; tp.style.background=item.src; th.appendChild(tp);
+    }
+    tb.appendChild(th);
+  });
+  updateCounter(slideIdx, slideImages.length);
+}
+
+function goTo(idx){
+  document.querySelectorAll('#slide-view .slide')[slideIdx]?.classList.remove('active');
+  document.querySelectorAll('#thumbs .thumb')[slideIdx]?.classList.remove('active');
+  slideIdx=(idx+slideImages.length)%slideImages.length;
+  document.querySelectorAll('#slide-view .slide')[slideIdx]?.classList.add('active');
+  const th=document.querySelectorAll('#thumbs .thumb')[slideIdx];
+  th?.classList.add('active');
+  th?.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+  updateCounter(slideIdx,slideImages.length);
+}
+function changeSlide(dir){ goTo(slideIdx+dir); }
+function updateCounter(i,t){ document.getElementById('counter').textContent=(i+1)+'/'+t; }
+
+function hideHero(){
+  const hero=document.getElementById('hero');
+  hero.style.transition='opacity 0.3s ease'; hero.style.opacity='0';
+  setTimeout(()=>hero.style.display='none',300);
+}
+
+document.addEventListener('keydown',e=>{
+  if(document.getElementById('slide-view').style.display==='block'){
+    if(e.key==='ArrowRight'||e.key==='ArrowDown') changeSlide(1);
+    if(e.key==='ArrowLeft'||e.key==='ArrowUp')    changeSlide(-1);
+    if(e.key==='Escape') backToGrid(); // ESC로 뒤로가기
+  } else if(document.getElementById('grid-view').style.display==='block'){
+    if(e.key==='Escape') showHero(null); // 그리드에서 ESC 누르면 히어로로
+  }
+});
+
+// ── 모바일 스와이프 (뒤로가기 포함) ──────────────────────
+(function(){
+  let touchStartX=0, touchStartY=0;
+  document.addEventListener('touchstart', e=>{
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }, {passive:true});
+
+  document.addEventListener('touchend', e=>{
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = e.changedTouches[0].clientY - touchStartY;
+    if(Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy)) return; // 가로 스와이프만 인식
+
+    const slideVisible = document.getElementById('slide-view').style.display==='block';
+    const gridVisible  = document.getElementById('grid-view').style.display==='block';
+    if(slideVisible){
+      if(dx < 0) changeSlide(1);   // 왼쪽으로 스와이프 → 다음 사진
+      else if(dx > 120) backToGrid(); // 오른쪽 넓게 스와이프 → 뒤로
+      else changeSlide(-1);        // 오른쪽 좁게 스와이프 → 이전 사진
+    } else if(gridVisible && dx > 120 && isMobileLayout()){
+      showHero(null); // 그리드에서 오른쪽 넓게 스와이프 → 히어로
+    }
+  }, {passive:true});
+})();
+
+// ── ADMIN ─────────────────────────────────────────────
+let loggedIn=false, uploadBuffer={}, editingNav=null;
+
+function openAdmin(){ document.getElementById('admin-overlay').classList.add('visible'); if(loggedIn) showAdminContent(); else showLoginBox(); }
+function closeAdmin(){ document.getElementById('admin-overlay').classList.remove('visible'); uploadBuffer={}; }
+function showLoginBox(){ document.getElementById('login-box').style.display='flex'; document.getElementById('admin-content').style.display='none'; document.getElementById('login-error').style.display='none'; document.getElementById('pw-input').value=''; setTimeout(()=>document.getElementById('pw-input').focus(),100); }
+// 비밀번호는 서버(/api/save)에서 검증한다. 여기서는 입력값을 캐시에 보관하고,
+// 빈 저장 요청을 보내 비밀번호가 맞는지 확인한 뒤 로그인 처리한다.
+async function checkPw(){
+  const pw = document.getElementById('pw-input').value;
+  if(!pw){ document.getElementById('login-error').style.display='block'; return; }
+  ADMIN_PASSWORD_CACHE = pw;
+  // 현재 데이터를 그대로 다시 저장 시도 → 비밀번호 검증 용도
+  const ok = await saveToStorage();
+  if(ok){
+    loggedIn=true;
+    document.getElementById('login-error').style.display='none';
+    showAdminContent();
+  } else {
+    ADMIN_PASSWORD_CACHE = null;
+    document.getElementById('login-error').style.display='block';
+  }
+}
+function logout(){ loggedIn=false; ADMIN_PASSWORD_CACHE=null; closeAdmin(); }
+function showAdminContent(){
+  document.getElementById('login-box').style.display='none';
+  document.getElementById('admin-content').style.display='block';
+  document.getElementById('edit-name').value=siteData.name;
+  document.getElementById('edit-phone').value=siteData.phone;
+  document.getElementById('edit-email').value=siteData.email;
+  document.getElementById('edit-insta').value=siteData.insta;
+  refreshHeroPreview();
+  editingNav=JSON.parse(JSON.stringify(navData));
+  renderCatEditor(); rebuildUploadSelect(); uploadBuffer={}; refreshPreview();
+  switchTab('tab-site',document.querySelector('.admin-tab'));
+}
+function switchTab(id,btn){
+  document.querySelectorAll('.admin-tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.admin-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active'); btn.classList.add('active');
+  if(id==='tab-images') rebuildUploadSelect();
+}
+
+// ── 이미지 압축 (속도 최적화) ─────────────────────────
+// 원본을 그대로 저장하면 사진당 3~5MB → 저장/렌더링이 매우 느려짐.
+// 캔버스로 리사이즈+재압축하여 용량을 10~20배 줄인다.
+function compressImage(file, maxDim = 1600, quality = 0.82) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onload = e => { img.src = e.target.result; };
+    reader.onerror = reject;
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > maxDim || height > maxDim) {
+        if (width > height) { height = Math.round(height * maxDim / width); width = maxDim; }
+        else { width = Math.round(width * maxDim / height); height = maxDim; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+function handleHeroUpload(input){
+  const files = Array.from(input.files);
+  Promise.all(files.map(f => compressImage(f))).then(results => {
+    heroImages.push(...results);
+    refreshHeroPreview();
+    saveToStorage();   // 업로드 즉시 저장 — 새로고침해도 유지
+    renderHero();      // 히어로 화면에도 즉시 반영
+  });
+  input.value='';
+}
+function removeHeroImage(i){
+  heroImages.splice(i,1);
+  refreshHeroPreview();
+  saveToStorage();
+  renderHero();
+}
+function refreshHeroPreview(){
+  const row=document.getElementById('hero-preview-row'); if(!row) return; row.innerHTML='';
+  let dragFromIdx=null;
+  heroImages.forEach((src,i)=>{
+    const w=document.createElement('div'); w.className='img-preview-item';
+    w.draggable=true; w.style.cursor='grab';
+
+    const img=document.createElement('img'); img.src=src; img.style.pointerEvents='none'; w.appendChild(img);
+    const btn=document.createElement('button'); btn.className='del-img'; btn.textContent='✕';
+    btn.onclick=()=>removeHeroImage(i); w.appendChild(btn);
+
+    // 드래그로 순서 변경
+    w.addEventListener('dragstart', e=>{
+      dragFromIdx=i;
+      w.style.opacity='0.4';
+      e.dataTransfer.effectAllowed='move';
+    });
+    w.addEventListener('dragend', ()=>{ w.style.opacity='1'; });
+    w.addEventListener('dragover', e=>{ e.preventDefault(); w.style.outline='2px solid #000'; });
+    w.addEventListener('dragleave', ()=>{ w.style.outline='none'; });
+    w.addEventListener('drop', e=>{
+      e.preventDefault();
+      w.style.outline='none';
+      if(dragFromIdx===null || dragFromIdx===i) return;
+      const [moved]=heroImages.splice(dragFromIdx,1);
+      heroImages.splice(i,0,moved);
+      refreshHeroPreview();
+      saveToStorage();
+      renderHero();
+    });
+
+    row.appendChild(w);
+  });
+}
+
+// cat editor
+function renderCatEditor(){
+  const c=document.getElementById('cat-editor'); c.innerHTML='';
+  Object.entries(editingNav).forEach(([gk,group])=>{
+    const gd=document.createElement('div'); gd.className='cat-group';
+    const hdr=document.createElement('div'); hdr.className='cat-group-header'; hdr.textContent=group.label; gd.appendChild(hdr);
+    group.items.forEach((item,idx)=>{
+      const row=document.createElement('div'); row.className='cat-item';
+      const inp=document.createElement('input'); inp.type='text'; inp.value=item.label; inp.oninput=e=>{ editingNav[gk].items[idx].label=e.target.value; };
+      const acts=document.createElement('div'); acts.className='cat-item-actions';
+      const up=document.createElement('button'); up.className='cat-btn'; up.textContent='↑'; up.onclick=()=>{ if(idx>0){ const a=editingNav[gk].items; [a[idx-1],a[idx]]=[a[idx],a[idx-1]]; renderCatEditor(); } };
+      const dn=document.createElement('button'); dn.className='cat-btn'; dn.textContent='↓'; dn.onclick=()=>{ const a=editingNav[gk].items; if(idx<a.length-1){ [a[idx],a[idx+1]]=[a[idx+1],a[idx]]; renderCatEditor(); } };
+      const dl=document.createElement('button'); dl.className='cat-btn del'; dl.textContent='✕'; dl.onclick=()=>{ editingNav[gk].items.splice(idx,1); renderCatEditor(); };
+      acts.appendChild(up); acts.appendChild(dn); acts.appendChild(dl);
+      row.appendChild(inp); row.appendChild(acts); gd.appendChild(row);
+    });
+    const ar=document.createElement('div'); ar.className='cat-add-row';
+    const ni=document.createElement('input'); ni.type='text'; ni.placeholder='New sub-category name…';
+    const ab=document.createElement('button'); ab.className='cat-add-btn'; ab.textContent='+ Add';
+    ab.onclick=()=>{ const v=ni.value.trim(); if(!v) return; const key=gk+'_'+v.toLowerCase().replace(/[^a-z0-9]/g,'_')+'_'+Date.now(); editingNav[gk].items.push({key,label:v}); renderCatEditor(); };
+    ar.appendChild(ni); ar.appendChild(ab); gd.appendChild(ar); c.appendChild(gd);
+  });
+}
+
+// image upload
+function rebuildUploadSelect(){
+  const sel=document.getElementById('upload-set-select'); if(!sel) return;
+  const prev=sel.value; sel.innerHTML='';
+  Object.entries(editingNav||navData).forEach(([gk,group])=>{
+    group.items.forEach(item=>{ const o=document.createElement('option'); o.value=item.key; o.textContent=group.label+' — '+item.label; sel.appendChild(o); });
+  });
+  if(prev) sel.value=prev;
+  refreshPreview();
+}
+function handleUpload(input){
+  const key=document.getElementById('upload-set-select').value;
+  if(!uploadBuffer[key]) uploadBuffer[key]=[];
+  Array.from(input.files).forEach(file=>{
+    // 이미지 리사이즈+압축 후 추가
+    compressImage(file).then(dataUrl=>{
+      uploadBuffer[key].push(dataUrl);
+      refreshPreview();
+    });
+  });
+  input.value='';
+}
+function refreshPreview(){
+  const sel=document.getElementById('upload-set-select'), row=document.getElementById('preview-row'); if(!sel||!row) return;
+  const key=sel.value; row.innerHTML='';
+  const all=[...(imageStore[key]||[]),...(uploadBuffer[key]||[])];
+  const exLen=(imageStore[key]||[]).length;
+  let dragFromIdx=null;
+
+  all.forEach((src,i)=>{
+    const w=document.createElement('div'); w.className='img-preview-item';
+    w.draggable=true;
+    w.dataset.idx=i;
+    w.style.cursor='grab';
+
+    const img=document.createElement('img'); img.src=src; img.style.pointerEvents='none'; w.appendChild(img);
+    const btn=document.createElement('button'); btn.className='del-img'; btn.textContent='✕';
+    btn.onclick=()=>removeImage(key,i,exLen); w.appendChild(btn);
+
+    // 드래그로 순서 변경
+    w.addEventListener('dragstart', e=>{
+      dragFromIdx=i;
+      w.style.opacity='0.4';
+      e.dataTransfer.effectAllowed='move';
+    });
+    w.addEventListener('dragend', ()=>{ w.style.opacity='1'; });
+    w.addEventListener('dragover', e=>{ e.preventDefault(); w.style.outline='2px solid #000'; });
+    w.addEventListener('dragleave', ()=>{ w.style.outline='none'; });
+    w.addEventListener('drop', e=>{
+      e.preventDefault();
+      w.style.outline='none';
+      const dropIdx=i;
+      if(dragFromIdx===null || dragFromIdx===dropIdx) return;
+      reorderImages(key, exLen, dragFromIdx, dropIdx);
+    });
+
+    row.appendChild(w);
+  });
+}
+
+// 기존 저장된 이미지(imageStore)와 업로드 대기열(uploadBuffer)을 합쳐서
+// 하나의 순서로 재배열한 뒤 다시 두 배열로 분리해 반영한다.
+function reorderImages(key, exLen, fromIdx, toIdx){
+  const all=[...(imageStore[key]||[]),...(uploadBuffer[key]||[])];
+  const [moved]=all.splice(fromIdx,1);
+  all.splice(toIdx,0,moved);
+  // 분리: 앞쪽 exLen개는 기존 저장본, 나머지는 업로드 대기열로 — 단, 순서가 섞였으므로
+  // 전체를 imageStore에 즉시 반영(저장 전이라도 미리보기 순서를 정확히 보존하기 위함)
+  imageStore[key]=all;
+  uploadBuffer[key]=[];
+  refreshPreview();
+}
+function removeImage(key,idx,exLen){
+  if(idx<exLen){ if(imageStore[key]) imageStore[key].splice(idx,1); }
+  else { const b=idx-exLen; if(uploadBuffer[key]) uploadBuffer[key].splice(b,1); }
+  refreshPreview();
+}
+
+async function saveAdmin(){
+  siteData.name=document.getElementById('edit-name').value.trim()||'HANJIHUN';
+  siteData.phone=document.getElementById('edit-phone').value.trim();
+  siteData.email=document.getElementById('edit-email').value.trim();
+  siteData.insta=document.getElementById('edit-insta').value.trim();
+  navData=JSON.parse(JSON.stringify(editingNav));
+  Object.keys(uploadBuffer).forEach(k=>{ if(!imageStore[k]) imageStore[k]=[]; imageStore[k].push(...uploadBuffer[k]); });
+  uploadBuffer={};
+  const ok = await saveToStorage();
+  renderNav();
+  if(ok){
+    const msg=document.getElementById('save-msg'); msg.style.display='block';
+    setTimeout(()=>{ msg.style.display='none'; closeAdmin(); },1200);
+  }
+}
+
+// ── 모바일 네비게이션 ─────────────────────────────────────
+function isMobileLayout(){ return window.innerWidth <= 680; }
+
+function toggleMobileNav(){
+  const nav=document.getElementById('nav');
+  const hamburger=document.getElementById('hamburger');
+  const backdrop=document.getElementById('nav-backdrop');
+  const isOpen=nav.classList.toggle('mobile-open');
+  hamburger.classList.toggle('open', isOpen);
+  backdrop.classList.toggle('visible', isOpen);
+}
+function closeMobileNav(){
+  document.getElementById('nav').classList.remove('mobile-open');
+  document.getElementById('hamburger').classList.remove('open');
+  document.getElementById('nav-backdrop').classList.remove('visible');
+}
+
+// 모바일 그리드: justified grid 대신 2-column 적용
+function renderMobileGrid(imgs, photosEl){
+  imgs.forEach(item=>{
+    const div=document.createElement('div'); div.className='grid-item';
+    let gridThumb;
+    if(isUrl(item.src)){
+      gridThumb=document.createElement('img'); gridThumb.className='grid-item-img'; gridThumb.src=item.src;
+    } else {
+      gridThumb=document.createElement('div'); gridThumb.className='grid-item-img'; gridThumb.style.background=item.src;
+    }
+    const lbl=document.createElement('div'); lbl.className='grid-item-label';
+    lbl.textContent=item.label;
+    if(currentGroupKey==='personal') lbl.style.display='none';
+    div.appendChild(gridThumb); div.appendChild(lbl);
+    div.onclick=()=>{
+      if(currentGroupKey==='personal'){
+        const allImgs=(item.allSrcs||[item.src]).map((src,i)=>({src,label:item.label,key:item.key,idx:i,allSrcs:item.allSrcs}));
+        enterSlide(allImgs, item.idx);
+      } else {
+        const allImgs=(item.allSrcs||[item.src]).map((src,i)=>({src,label:item.label,key:item.key,idx:i}));
+        enterSlide(allImgs, 0);
+      }
+    };
+    photosEl.appendChild(div);
+  });
+  document.getElementById('back-btn').style.display='none';
+}
+
+// ── 브라우저 뒤로가기 / 노트북 트랙패드 좌우 스와이프 지원 ──
+// 트랙패드로 좌우 스와이프하면 브라우저가 popstate 이벤트를 발생시킨다.
+window.addEventListener('popstate', e=>{
+  const state = e.state;
+  if(!state || state.view==='hero'){
+    showHero(null, true);
+  } else if(state.view==='grid'){
+    showGrid(state.groupKey, state.filterKey, true);
+  } else if(state.view==='slide'){
+    showGrid(state.groupKey, null, true);
+    const imgs = getGroupImages(state.groupKey);
+    if(imgs.length) enterSlide(imgs, state.startIdx||0, true);
+  }
+});
+
+// ── 뷰포트 리사이즈 대응 (desktop ↔ mobile 전환 시 그리드 재렌더) ──
+let _resizeTimer=null;
+window.addEventListener('resize',()=>{
+  clearTimeout(_resizeTimer);
+  _resizeTimer=setTimeout(()=>{
+    if(document.getElementById('grid-view').style.display==='block' && currentGroupKey){
+      showGrid(currentGroupKey, null, true);
+    }
+  }, 300);
+});
+
+// ── INIT ──────────────────────────────────────────────
+(async function init(){
+  await loadFromStorage();   // R2에서 데이터를 먼저 불러온 뒤
+  renderNav();               // 화면을 그린다
+  safeReplaceState({view:'hero'});
+})();
+</script>
+</body>
+</html>
