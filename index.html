@@ -34,18 +34,19 @@
       color:var(--black); text-decoration:none; letter-spacing:0.02em; cursor:pointer;
     }
     #hamburger {
-      background:none; border:none; cursor:pointer; padding:6px; display:flex;
-      flex-direction:column; gap:5px; align-items:flex-end;
+      background:none; border:none; cursor:pointer; padding:6px;
+      position:relative; width:34px; height:22px;
     }
     #hamburger span {
-      display:block; height:1px; background:var(--black); transition:all 0.2s;
+      display:block; position:absolute; right:6px; height:1px; background:var(--black);
+      transition:transform 0.2s ease, opacity 0.2s ease, width 0.2s ease;
     }
-    #hamburger span:nth-child(1) { width:22px; }
-    #hamburger span:nth-child(2) { width:16px; }
-    #hamburger span:nth-child(3) { width:22px; }
-    #hamburger.open span:nth-child(1) { transform:translateY(6px) rotate(45deg); width:22px; }
+    #hamburger span:nth-child(1) { top:6px;  width:22px; }
+    #hamburger span:nth-child(2) { top:11px; width:16px; }
+    #hamburger span:nth-child(3) { top:16px; width:22px; }
+    #hamburger.open span:nth-child(1) { top:11px; transform:rotate(45deg);  width:22px; }
     #hamburger.open span:nth-child(2) { opacity:0; }
-    #hamburger.open span:nth-child(3) { transform:translateY(-6px) rotate(-45deg); width:22px; }
+    #hamburger.open span:nth-child(3) { top:11px; transform:rotate(-45deg); width:22px; }
 
     /* backdrop for mobile nav */
     #nav-backdrop {
@@ -312,9 +313,9 @@
       }
       .grid-title { font-size:10px; margin-bottom:16px; }
 
-      /* mobile grid: 2-column fixed layout, no justified gymnastics */
+      /* mobile grid: 2-column fixed layout */
       .grid-photos { display:grid !important; grid-template-columns:1fr 1fr; gap:3px; }
-      .grid-photos > div { display:contents; } /* flatten row wrappers */
+      .grid-photos > div:not(.grid-item) { display:contents; } /* flatten row wrappers only */
       .grid-item {
         width:100% !important; height:0 !important; padding-bottom:100%; /* 1:1 */
         flex:none !important; flex-shrink:unset !important;
