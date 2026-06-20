@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Photography | HANJIHUN</title>
+  <title>HANJIHUN</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
   <style>
@@ -31,7 +31,7 @@
     }
     .mobile-logo {
       font-family:'Playfair Display',Georgia,serif; font-size:16px; font-weight:700;
-      color:var(--black); text-decoration:none; letter-spacing:0.02em;
+      color:var(--black); text-decoration:none; letter-spacing:0.02em; cursor:pointer;
     }
     #hamburger {
       background:none; border:none; cursor:pointer; padding:6px; display:flex;
@@ -64,7 +64,7 @@
     #nav::-webkit-scrollbar { display:none; }
     .nav-name {
       font-family:'Playfair Display',Georgia,serif; font-size:18px; font-weight:700;
-      letter-spacing:0.02em; color:var(--black); text-decoration:none; margin-bottom:28px; display:block;
+      letter-spacing:0.02em; color:var(--black); text-decoration:none; margin-bottom:28px; display:block; cursor:pointer;
     }
     .nav-section { margin-bottom:0; }
     .nav-section-label {
@@ -371,14 +371,14 @@
 
 <!-- 모바일 상단바 (모바일에서만 표시) -->
 <div id="mobile-bar">
-  <a href="#" class="mobile-logo" onclick="showHero(event);closeMobileNav();">HANJIHUN</a>
+  <a role="button" class="mobile-logo" onclick="showHero(event);closeMobileNav();">HANJIHUN</a>
   <button id="hamburger" onclick="toggleMobileNav()" aria-label="메뉴">
     <span></span><span></span><span></span>
   </button>
 </div>
 
 <nav id="nav">
-  <a href="#" class="nav-name" id="site-name" onclick="showHero(event);closeMobileNav();">HANJIHUN</a>
+  <a role="button" class="nav-name" id="site-name" onclick="showHero(event);closeMobileNav();">HANJIHUN</a>
   <div id="nav-dynamic"></div>
   <div class="nav-spacer"></div>
   <div class="nav-copy">© 2019 Hanjihun.<br>All rights reserved.</div>
@@ -518,8 +518,8 @@ let slideImages = [], slideIdx = 0; // slide mode
 // ── 안전한 history 래퍼 ────────────────────────────────
 // about:srcdoc 같은 샌드박스 미리보기 환경에서는 history API가 보안상 차단되어
 // SecurityError를 던진다. 실제 배포 환경에서는 정상 동작하므로 에러만 무시한다.
-function safePushState(state){ try{ history.pushState(state, '', '#'); }catch(e){} }
-function safeReplaceState(state){ try{ history.replaceState(state, '', '#'); }catch(e){} }
+function safePushState(state){ try{ history.pushState(state, ''); }catch(e){} }
+function safeReplaceState(state){ try{ history.replaceState(state, ''); }catch(e){} }
 
 // ── STORAGE (Cloudflare R2 연동) ───────────────────────
 // 데이터를 서버(R2)에서 불러오고 저장한다. 어디서 접속해도 동일하게 보인다.
@@ -635,7 +635,7 @@ function openDirFallback(isMobile) {
 // ── NAV RENDER ────────────────────────────────────────
 function renderNav() {
   document.getElementById('site-name').textContent = siteData.name;
-  document.title = 'Photography | ' + siteData.name;
+  document.title = siteData.name;
   renderHero();
   const container = document.getElementById('nav-dynamic');
   container.innerHTML = '';
