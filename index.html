@@ -1063,9 +1063,29 @@ function compressImage(file, maxDim = 1200, quality = 0.75) {
     reader.readAsDataURL(file);
   });
 }
+
+// 파일을 압축 → R2에 업로드 → 접근 URL(/api/img/...) 반환.
+// 실패 시 base64를 그대로 반환(폴백)해 최소한 동작은 보장.
+async function compressAndUpload(file){
+  const dataUrl = await compressImage(file);
+  if (!ADMIN_PASSWORD_CACHE) return dataUrl; // 로그인 전이면 폴백
+  try {
+    const res = await fetch('/api/upload', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ password: ADMIN_PASSWORD_CACHE, dataUrl }),
+    });
+    if(!res.ok) throw new Error('upload failed '+res.status);
+    const out = await res.json();
+    return out.url; // 예: /api/img/img_xxx.jpg
+  } catch(e){
+    console.error('이미지 업로드 실패, base64로 폴백:', e);
+    return dataUrl;
+  }
+}
 function handleHeroUpload(input){
   const files = Array.from(input.files);
-  Promise.all(files.map(f => compressImage(f))).then(results => {
+  Promise.all(files.map(f => compressAndUpload(f))).then(results => {
     heroImages.push(...results);
     refreshHeroPreview();
     saveToStorage();   // 업로드 즉시 저장 — 새로고침해도 유지
@@ -1196,9 +1216,9 @@ function handleUpload(input){
   const key=document.getElementById('upload-set-select').value;
   if(!uploadBuffer[key]) uploadBuffer[key]=[];
   Array.from(input.files).forEach(file=>{
-    // 이미지 리사이즈+압축 후 추가
-    compressImage(file).then(dataUrl=>{
-      uploadBuffer[key].push(dataUrl);
+    // 압축 후 R2에 업로드하고 URL을 받아 추가
+    compressAndUpload(file).then(url=>{
+      uploadBuffer[key].push(url);
       refreshPreview();
     });
   });

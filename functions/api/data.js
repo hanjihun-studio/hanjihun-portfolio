@@ -18,7 +18,8 @@ export async function onRequestGet(context) {
     return new Response(data, {
       headers: {
         'Content-Type': 'application/json',
-        'Cache-Control': 'no-store',
+        // 가벼운 목록 데이터 — 짧게 캐싱(60초)해 반복 방문 시 빠르게.
+        'Cache-Control': 'public, max-age=60',
         'Access-Control-Allow-Origin': '*',
       },
     });
