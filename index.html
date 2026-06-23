@@ -482,6 +482,9 @@ const DEFAULT_NAV = {
     {key:'loewe',       label:'Loewe'},
     {key:'miumiu',      label:'Miu Miu'},
   ]},
+  commercial: { label:'Commercial', items:[
+    {key:'commercial', label:'Commercial'},
+  ]},
   editorial: { label:'Editorial', items:[
     {key:'vogue',      label:'Vogue Korea'},
     {key:'wmagazine',  label:'W Magazine'},
@@ -504,7 +507,7 @@ const DEFAULT_COLORS = {
   gucci:'#9c9080', celine:'#a8a4a0', loewe:'#849080', miumiu:'#a89094',
   vogue:'#a0a0a0', wmagazine:'#888888', another:'#a09084', selfservice:'#909c90',
   dazed:'#202020', dust:'#b8b4ac', document:'#888888',
-  celebrity:'#9c9490', personal:'#c0bcb4',
+  celebrity:'#9c9490', personal:'#c0bcb4', commercial:'#94989c',
 };
 
 // ── STATE ─────────────────────────────────────────────
@@ -545,6 +548,12 @@ async function loadFromStorage() {
     if(!navData[gk]) navData[gk] = JSON.parse(JSON.stringify(DEFAULT_NAV[gk]));
   });
   if(navData.movingimage) delete navData.movingimage;
+  // 그룹 순서를 DEFAULT_NAV 기준으로 정렬 (새로 추가된 그룹이 올바른 위치에 오도록).
+  // DEFAULT_NAV에 없는 사용자 추가 그룹은 뒤에 그대로 유지한다.
+  const ordered = {};
+  Object.keys(DEFAULT_NAV).forEach(gk=>{ if(navData[gk]) ordered[gk]=navData[gk]; });
+  Object.keys(navData).forEach(gk=>{ if(!ordered[gk]) ordered[gk]=navData[gk]; });
+  navData = ordered;
 }
 
 // 서버에 저장 (비밀번호 필요). 성공 시 true 반환.
