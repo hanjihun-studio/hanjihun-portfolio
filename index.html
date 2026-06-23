@@ -1118,20 +1118,64 @@ function renderCatEditor(){
   Object.entries(editingNav).forEach(([gk,group])=>{
     const gd=document.createElement('div'); gd.className='cat-group';
     const hdr=document.createElement('div'); hdr.className='cat-group-header'; hdr.textContent=group.label; gd.appendChild(hdr);
+    let dragFromIdx=null;
     group.items.forEach((item,idx)=>{
       const row=document.createElement('div'); row.className='cat-item';
-      const inp=document.createElement('input'); inp.type='text'; inp.value=item.label; inp.oninput=e=>{ editingNav[gk].items[idx].label=e.target.value; };
+      row.draggable=true;
+      row.dataset.idx=idx;
+
+      // 드래그 핸들
+      const handle=document.createElement('span'); handle.className='cat-drag-handle'; handle.textContent='⠿';
+      handle.style.cssText='cursor:grab;color:#bbb;font-size:14px;padding:0 6px 0 0;user-select:none;flex:none;';
+
+      const inp=document.createElement('input'); inp.type='text'; inp.value=item.label; inp.draggable=false; inp.oninput=e=>{ editingNav[gk].items[idx].label=e.target.value; };
       const acts=document.createElement('div'); acts.className='cat-item-actions';
       const up=document.createElement('button'); up.className='cat-btn'; up.textContent='↑'; up.onclick=()=>{ if(idx>0){ const a=editingNav[gk].items; [a[idx-1],a[idx]]=[a[idx],a[idx-1]]; renderCatEditor(); } };
       const dn=document.createElement('button'); dn.className='cat-btn'; dn.textContent='↓'; dn.onclick=()=>{ const a=editingNav[gk].items; if(idx<a.length-1){ [a[idx],a[idx+1]]=[a[idx+1],a[idx]]; renderCatEditor(); } };
       const dl=document.createElement('button'); dl.className='cat-btn del'; dl.textContent='✕'; dl.onclick=()=>{ editingNav[gk].items.splice(idx,1); renderCatEditor(); };
       acts.appendChild(up); acts.appendChild(dn); acts.appendChild(dl);
-      row.appendChild(inp); row.appendChild(acts); gd.appendChild(row);
+      row.appendChild(handle); row.appendChild(inp); row.appendChild(acts);
+
+      // 드래그 앤 드롭 (같은 그룹 안에서만 순서 변경)
+      row.addEventListener('dragstart', e=>{
+        dragFromIdx=idx;
+        row.style.opacity='0.4';
+        e.dataTransfer.effectAllowed='move';
+      });
+      row.addEventListener('dragend', ()=>{ row.style.opacity='1'; });
+      row.addEventListener('dragover', e=>{ e.preventDefault(); row.style.borderTop='2px solid #000'; });
+      row.addEventListener('dragleave', ()=>{ row.style.borderTop='none'; });
+      row.addEventListener('drop', e=>{
+        e.preventDefault();
+        row.style.borderTop='none';
+        const dropIdx=idx;
+        if(dragFromIdx===null || dragFromIdx===dropIdx) return;
+        const a=editingNav[gk].items;
+        const [moved]=a.splice(dragFromIdx,1);
+        a.splice(dropIdx,0,moved);
+        renderCatEditor();
+      });
+
+      gd.appendChild(row);
     });
     const ar=document.createElement('div'); ar.className='cat-add-row';
     const ni=document.createElement('input'); ni.type='text'; ni.placeholder='New sub-category name…';
     const ab=document.createElement('button'); ab.className='cat-add-btn'; ab.textContent='+ Add';
-    ab.onclick=()=>{ const v=ni.value.trim(); if(!v) return; const key=gk+'_'+v.toLowerCase().replace(/[^a-z0-9]/g,'_')+'_'+Date.now(); editingNav[gk].items.push({key,label:v}); renderCatEditor(); };
+    const addItem=()=>{
+      const v=ni.value.trim(); if(!v) return;
+      const key=gk+'_'+v.toLowerCase().replace(/[^a-z0-9]/g,'_')+'_'+Date.now();
+      editingNav[gk].items.push({key,label:v});
+      renderCatEditor();
+      // 방금 추가한 그룹의 입력란에 다시 포커스 → 연속 입력 편의
+      setTimeout(()=>{
+        const inputs=document.querySelectorAll('#cat-editor .cat-add-row input');
+        const groupKeys=Object.keys(editingNav);
+        const gi=groupKeys.indexOf(gk);
+        if(inputs[gi]) inputs[gi].focus();
+      },0);
+    };
+    ab.onclick=addItem;
+    ni.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); addItem(); } });
     ar.appendChild(ni); ar.appendChild(ab); gd.appendChild(ar); c.appendChild(gd);
   });
 }
