@@ -464,6 +464,17 @@
       </div>
       <button class="admin-save" onclick="saveAdmin()">Save &amp; Apply</button>
       <div class="save-msg" id="save-msg">✓ Saved</div>
+
+      <!-- 기존 base64 이미지를 R2로 일괄 이전하는 도구 -->
+      <div style="margin-top:18px;padding-top:18px;border-top:1px solid #eee;">
+        <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gray);margin-bottom:8px;">Speed · Migrate Images to R2</div>
+        <p style="font-size:11px;color:#999;line-height:1.6;margin-bottom:10px;">
+          기존에 올린 사진들을 서버(R2)로 옮겨 사이트를 가볍고 빠르게 만듭니다. 한 번만 실행하면 됩니다.
+        </p>
+        <button class="admin-save" style="background:#1a6c2f;" onclick="migrateImagesToR2()">기존 이미지 R2로 이전 시작</button>
+        <div id="migrate-status" style="font-size:11px;color:#555;margin-top:10px;display:none;line-height:1.6;"></div>
+      </div>
+
       <button class="admin-logout" onclick="logout()">Log out</button>
     </div>
   </div>
@@ -1293,6 +1304,63 @@ async function saveAdmin(){
   if(ok){
     const msg=document.getElementById('save-msg'); msg.style.display='block';
     setTimeout(()=>{ msg.style.display='none'; closeAdmin(); },1200);
+  }
+}
+
+// base64 data URL을 R2에 업로드하고 /api/img/.. URL로 교체하는 일괄 이전 도구
+async function migrateImagesToR2(){
+  if(!ADMIN_PASSWORD_CACHE){ alert('먼저 로그인해주세요.'); return; }
+  const statusEl=document.getElementById('migrate-status');
+  statusEl.style.display='block';
+
+  // 1) 이전 대상(base64) 수집: imageStore의 모든 카테고리 + heroImages
+  const tasks=[]; // {type, key, idx}
+  Object.keys(imageStore).forEach(key=>{
+    (imageStore[key]||[]).forEach((src,idx)=>{
+      if(typeof src==='string' && src.startsWith('data:')) tasks.push({type:'img', key, idx});
+    });
+  });
+  heroImages.forEach((src,idx)=>{
+    if(typeof src==='string' && src.startsWith('data:')) tasks.push({type:'hero', idx});
+  });
+
+  if(tasks.length===0){
+    statusEl.textContent='이전할 base64 이미지가 없습니다. 이미 모두 최적화되어 있습니다.';
+    return;
+  }
+
+  statusEl.textContent=`총 ${tasks.length}개 이미지 이전 시작…`;
+  let done=0, failed=0;
+
+  // 2) 하나씩 R2에 업로드 (서버 부담 줄이려 순차 처리)
+  for(const t of tasks){
+    const src = t.type==='hero' ? heroImages[t.idx] : imageStore[t.key][t.idx];
+    try{
+      const res=await fetch('/api/upload',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({password:ADMIN_PASSWORD_CACHE, dataUrl:src}),
+      });
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      const out=await res.json();
+      if(t.type==='hero') heroImages[t.idx]=out.url;
+      else imageStore[t.key][t.idx]=out.url;
+      done++;
+    }catch(e){
+      console.error('이전 실패:', e);
+      failed++;
+    }
+    statusEl.textContent=`이전 중… ${done+failed}/${tasks.length} (성공 ${done}, 실패 ${failed})`;
+  }
+
+  // 3) URL로 바뀐 데이터를 서버에 저장 → data.json이 가벼워짐
+  statusEl.textContent=`업로드 완료(성공 ${done}, 실패 ${failed}). 저장 중…`;
+  const saved=await saveToStorage();
+  if(saved){
+    statusEl.innerHTML=`✓ 완료! ${done}개 이미지를 R2로 이전했습니다.<br>이제 사이트가 훨씬 가벼워집니다. 새로고침해서 속도를 확인해보세요.`;
+    renderNav();
+  }else{
+    statusEl.textContent='이미지 이전은 됐지만 최종 저장에 실패했습니다. 다시 Save를 눌러주세요.';
   }
 }
 
