@@ -783,7 +783,13 @@ function showGrid(groupKey, filterKey, fromHistory){
   gv.style.display='block';
   document.getElementById('back-btn').style.display='none';
 
-  // 1) 모든 항목의 실제 비율(가로/세로)을 먼저 구한다
+  // 모바일은 1:1 고정 그리드라 비율 측정이 불필요 → probe 생략하고 즉시 렌더(빠름)
+  if(isMobileLayout()){
+    renderMobileGrid(imgs, photosEl);
+    return;
+  }
+
+  // 데스크톱: 각 항목의 실제 비율(가로/세로)을 먼저 구한 뒤 비정형 배치
   const ratioPromises = imgs.map(item=>{
     if(!isUrl(item.src)) return Promise.resolve(0.75); // placeholder 기본 3:4
     return new Promise(resolve=>{
@@ -795,11 +801,7 @@ function showGrid(groupKey, filterKey, fromHistory){
   });
 
   Promise.all(ratioPromises).then(ratios=>{
-    if(isMobileLayout()){
-      renderMobileGrid(imgs, photosEl);
-    } else {
-      renderJustifiedGrid(imgs, ratios, photosEl);
-    }
+    renderJustifiedGrid(imgs, ratios, photosEl);
   });
 }
 
@@ -865,7 +867,7 @@ function buildGridItem(item, w, h){
   };
   let gridThumb;
   if(isUrl(item.src)){
-    gridThumb=document.createElement('img'); gridThumb.className='grid-item-img'; gridThumb.src=item.src;
+    gridThumb=document.createElement('img'); gridThumb.className='grid-item-img'; gridThumb.loading='lazy'; gridThumb.decoding='async'; gridThumb.src=item.src;
   } else {
     gridThumb=document.createElement('div'); gridThumb.className='grid-item-img'; gridThumb.style.background=item.src;
   }
@@ -917,7 +919,7 @@ function buildSlides(){
     ph.style.cssText='width:100%;height:100%;display:flex;align-items:center;justify-content:center;';
     if(isUrl(item.src)){
       // 실제 이미지의 자연 비율 그대로, 화면(여백 포함)에 맞게 최대한 크게 표시
-      const img=document.createElement('img'); img.src=item.src;
+      const img=document.createElement('img'); img.decoding='async'; img.src=item.src;
       img.style.cssText='max-width:90%;max-height:90%;width:auto;height:auto;object-fit:contain;display:block;';
       ph.appendChild(img);
     } else {
@@ -930,7 +932,7 @@ function buildSlides(){
     const th=document.createElement('div'); th.className='thumb'+(i===slideIdx?' active':'');
     th.onclick=()=>goTo(i);
     if(isUrl(item.src)){
-      const img=document.createElement('img'); img.src=item.src; img.className='thumb-photo'; th.appendChild(img);
+      const img=document.createElement('img'); img.loading='lazy'; img.decoding='async'; img.src=item.src; img.className='thumb-photo'; th.appendChild(img);
     } else {
       const tp=document.createElement('div'); tp.className='thumb-photo'; tp.style.background=item.src; th.appendChild(tp);
     }
@@ -1039,7 +1041,7 @@ function switchTab(id,btn){
 // ── 이미지 압축 (속도 최적화) ─────────────────────────
 // 원본을 그대로 저장하면 사진당 3~5MB → 저장/렌더링이 매우 느려짐.
 // 캔버스로 리사이즈+재압축하여 용량을 10~20배 줄인다.
-function compressImage(file, maxDim = 1600, quality = 0.82) {
+function compressImage(file, maxDim = 1200, quality = 0.75) {
   return new Promise((resolve, reject) => {
     const img = new Image();
     const reader = new FileReader();
@@ -1297,7 +1299,7 @@ function renderMobileGrid(imgs, photosEl){
     const div=document.createElement('div'); div.className='grid-item';
     let gridThumb;
     if(isUrl(item.src)){
-      gridThumb=document.createElement('img'); gridThumb.className='grid-item-img'; gridThumb.src=item.src;
+      gridThumb=document.createElement('img'); gridThumb.className='grid-item-img'; gridThumb.loading='lazy'; gridThumb.decoding='async'; gridThumb.src=item.src;
     } else {
       gridThumb=document.createElement('div'); gridThumb.className='grid-item-img'; gridThumb.style.background=item.src;
     }
